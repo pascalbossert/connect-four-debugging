@@ -47,6 +47,11 @@ export class Board {
   }
 
   public winner(player: Player, row: number, col: number): Player {
+    // Defensive: Validiere Eingabeparameter
+    if (row < 0 || row >= ROWS || col < 0 || col >= COLS) {
+      return Player.Nobody;
+    }
+
     const horizontal = this.horizontalWinner(player, row);
     if (horizontal != Player.Nobody) {
       return horizontal;
@@ -109,12 +114,19 @@ export class Board {
     // Woe to thee, who entered here, for you dug too deep and unearthed daemons of the otherworld!
     const rising: Array<string> = [];
     const falling: Array<string> = [];
+
+    // Rising diagonal: / (von unten-links nach oben-rechts)
+    // Zuerst nach oben-rechts von (r,c)
     for (let i = r, j = c; i >= 0 && j < this.fields[0].length; i--, j++) {
       rising.push(this.fields[i][j]);
     }
-    for (let i = r, j = c; i < this.fields.length && j >= 0; i++, j--) {
+    // Dann nach unten-links ab (r+1, c-1) - NICHT (r,c) um Duplikate zu vermeiden!
+    for (let i = r + 1, j = c - 1; i < this.fields.length && j >= 0; i++, j--) {
       rising.push(this.fields[i][j]);
     }
+
+    // Falling diagonal: \ (von oben-links nach unten-rechts)
+    // Zuerst nach unten-rechts von (r,c)
     for (
       let i = r, j = c;
       i < this.fields.length && j < this.fields[0].length;
@@ -122,9 +134,16 @@ export class Board {
     ) {
       falling.push(this.fields[i][j]);
     }
-    for (let i = r, j = c; i >= 0 && j >= 0; i--, j--) {
-      falling.push(this.fields[i][i]);
+    // Dann nach oben-links ab (r-1, c-1) - NICHT (r,c) um Duplikate zu vermeiden!
+    for (let i = r - 1, j = c - 1; i >= 0 && j >= 0; i--, j--) {
+      falling.push(this.fields[i][j]);
     }
-    return [rising.join(""), falling.join("")];
+
+    const risingStr = rising.join("");
+    const fallingStr = falling.join("");
+    console.log(`DEBUG getDiagonals(${r}, ${c}):`);
+    console.log(`  rising:  "${risingStr}" (length: ${rising.length})`);
+    console.log(`  falling: "${fallingStr}" (length: ${falling.length})`);
+    return [risingStr, fallingStr];
   }
 }
